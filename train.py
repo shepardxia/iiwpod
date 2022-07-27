@@ -8,7 +8,7 @@ from src.utils import image_files_from_folder
 from src.label import readShapes, Shape
 from os.path import isfile, isdir, splitext
 from tqdm import tqdm
-from src.loss import poly_loss
+from src.loss import poly_loss, gen_loss
 
 def load_network(version=0, weights=None):
     if weights is None:
@@ -48,19 +48,24 @@ data_gen = ALPRDataGenerator(Data, batch_size=1)
 training_loader = torch.utils.data.DataLoader(data_gen, batch_size = 2, shuffle = True)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-maxEpoch = 1
-loss_fn = torch.nn.L1Loss()
+maxEpoch = 100
+
 for epoch in range(maxEpoch):
 
-    for batch, (x, y) in tqdm(enumerate(training_loader)):
+	for batch, (x, y) in enumerate(training_loader):
+		
+		x = x.type(torch.float32)
+		pred = model(x)
+		loss = gen_loss(y, pred)
+		optimizer.zero_grad()
+		loss.mean().backward()
+		if torch.isnan(loss.mean()):
+			print('caught')
+		else:
+			optimizer.step()
+			print(loss.mean())
 
-        x = x.type(torch.float32)
-        pred = model(x)
-        loss = poly_loss(y, pred)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-    print(loss)
+	print(loss)
 
 
 torch.save(model, './model.pth')

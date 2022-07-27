@@ -2,7 +2,7 @@ from src.polygon_iou_loss import c_poly_diou_loss
 import numpy as np
 import torch
 
-def loss(Ytrue, Ypred):
+def gen_loss(Ytrue, Ypred):
     return poly_loss(Ytrue, Ypred) + clas_loss(Ytrue, Ypred)
 
 def poly_loss(Ytrue, Ypred):
@@ -33,27 +33,28 @@ def poly_loss(Ytrue, Ypred):
         pts = torch.cat([pts, pts_xy], 3)
 
     flags = torch.reshape(obj_probs_true, (b, h, w, 1))
-    loss = 0
     
     bb, xx, yy, zz = torch.where(flags==1)
+    loss = torch.zeros(Ypred.shape[0])
     for i in range(len(bb)):
         b, x, y = bb[i], xx[i], yy[i]
-        loss += c_poly_diou_loss(pts[b, x, y, :].T.reshape(4, 2), pts_true[b, x, y, :].T.reshape(4, 2))
+        loss[b] += c_poly_diou_loss(pts[b, x, y, :].reshape(4, 2), pts_true[b, x, y, :].reshape(4, 2))
     # dimmax = 13
     #loss = 1.0 * c_poly_diou_loss(pts_true * flags, pts * flags)
     # /dimmax
+    #print(loss)
     return loss
 
 
 def logloss(Ptrue, Pred, szs, eps=10e-10):
 	# batch size, height, width and channels
-	b,h,w,ch = szs
-	Pred = torch.clip_by_value(Pred, eps, 1.0 - eps)
-	Pred = -torch.math.log(Pred)
-	Pred = Pred*Ptrue
-	Pred = torch.reshape(Pred, (b, h*w*ch))
-	Pred = torch.reduce_sum(Pred,1)
-	return Pred
+    b,h,w,ch = szs
+    Pred = torch.clip(Pred, eps, 1.0 - eps)
+    Pred = -torch.log(Pred)
+    Pred = Pred*Ptrue
+    Pred = torch.reshape(Pred, (b, h*w*ch))
+    Pred = torch.sum(Pred, dim=1)
+    return Pred
 
 def clas_loss(Ytrue, Ypred): # classification loss only
 
