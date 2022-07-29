@@ -4,6 +4,8 @@ import numpy as np
 from src.sampler import augment_sample, labels2output_map
 import torch
 
+device = 'cuda'
+
 class ALPRDataGenerator(torch.utils.data.Dataset):
     'Generates data for PyTorch'
     def __init__(self, data, batch_size=32, dim =  128, stride = 8, shuffle=True, OutputScale = 1.0):
@@ -50,8 +52,8 @@ class ALPRDataGenerator(torch.utils.data.Dataset):
 
         X = XX*self.OutputScale
 
-        X = torch.from_numpy(XX).permute(2, 0, 1)
-        y = torch.from_numpy(YY)
+        X = torch.from_numpy(XX).permute(2, 0, 1).to(device)
+        y = torch.from_numpy(YY).to(device)
 
         return X, y
 

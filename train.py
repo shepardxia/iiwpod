@@ -16,9 +16,9 @@ def load_network(version=0, weights=None):
     else:
         return iiwpod()
 
+device = 'cuda'
 
-
-model = load_network()
+model = load_network().to(device)
 
 Files = image_files_from_folder('./dataset')
 	
