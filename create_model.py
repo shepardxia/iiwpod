@@ -29,7 +29,7 @@ class iiwpod(nn.Module):
         self.batch_5 = nn.BatchNorm2d(64, )
         self.relu_5 = nn.ReLU()
         self.res_4 = ResBlock(64, 64)
-        self.res_5 = ResBlock(64, 32)
+        self.res_5 = ResBlock(64, 64)
         self.head = head()
 
 
@@ -68,9 +68,9 @@ class iiwpod(nn.Module):
 class ResBlock(nn.Module):
     def __init__(self, in_channels, out_channels, ):
         super(ResBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, (3, 3), (1, 1), padding='same')
+        self.conv1 = nn.Conv2d(in_channels, out_channels, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
         self.shortcut = nn.Sequential()
-        self.conv2 = nn.Conv2d(out_channels, out_channels, (3, 3), (1, 1), padding='same')
+        self.conv2 = nn.Conv2d(out_channels, out_channels, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
         self.bn1 = nn.BatchNorm2d(out_channels)
         self.bn2 = nn.BatchNorm2d(out_channels)
 
@@ -85,33 +85,31 @@ class ResBlock(nn.Module):
 class head(nn.Module):
     def __init__(self, ):
         super(head, self).__init__()
-        #self.conv_1 = nn.Conv2d(3, 16, (3, 3), (1, 1), groups = 1, bias=True)
+        self.conv_1 = nn.Conv2d(64, 32, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
         self.batch_1 = nn.BatchNorm2d(16, )
         self.relu_1 = nn.ReLU()
-        self.conv_2 = nn.Conv2d(32, 16, (3, 3), (1, 1), padding='same')
-        #self.lin_1 = nn.Linear(16, 16)
-        self.conv_3 = nn.Conv2d(16, 1, (1, 1), (1, 1), padding='same')
+        self.conv_2 = nn.Conv2d(32, 16, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
+        self.conv_3 = nn.Conv2d(16, 1, (1, 1), (1, 1), groups = 1, bias=True, padding='same')
         self.sig_1 = nn.Sigmoid()
         
-        #self.conv_4 = nn.Conv2d()
+        self.conv_4 = nn.Conv2d(64, 32, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
         self.batch_2 = nn.BatchNorm2d(16)
         self.relu_2 = nn.ReLU()
-        self.conv_5 = nn.Conv2d(32, 16, (3, 3), (1, 1), padding='same')
-        #self.lin_2 = nn.Linear(16, 16)
-        self.conv_6 = nn.Conv2d(16, 6, (1, 1), padding='same')
-        self.sig_2 = nn.Sigmoid()
+        self.conv_5 = nn.Conv2d(32, 16, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
+        self.conv_6 = nn.Conv2d(16, 6, (1, 1), groups = 1, bias=True, padding='same')
 
     def forward(self, x):
-        xprobs = self.conv_2(x)
+        xprobs = self.conv_1(x)
         xprobs = self.batch_1(xprobs)
         xprobs = self.relu_1(xprobs)
+        xprobs = self.conv_2(xprobs)
         xprobs = self.conv_3(xprobs)
         xprobs = self.sig_1(xprobs)
 
         xbbox = self.conv_5(x)
         xbbox = self.batch_2(xbbox)
         xbbox = self.relu_2(xbbox)
+        xbbox = self.conv_5(xbbox)
         xbbox = self.conv_6(xbbox)
-        xbbox = self.sig_2(xbbox)
 
         return torch.cat((xprobs, xbbox), 1)

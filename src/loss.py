@@ -38,8 +38,7 @@ def poly_loss(Ytrue, Ypred):
     idxs = torch.where(obj_probs_true==1)
 
     #loss = torch.zeros(Ypred.shape[0]).to(device)
-    print(pts[idxs])
-    print(pts[idxs].reshape(-1, 4, 2))
+
     loss = batch_poly_diou_loss(pts[idxs].reshape(-1, 4, 2), pts_true[idxs].reshape(-1, 4, 2)).mean()
     #for i in range(len(bb)):
     #    b, x, y = bb[i], xx[i], yy[i]
