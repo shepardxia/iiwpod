@@ -47,6 +47,7 @@ class ALPRDataGenerator(torch.utils.data.Dataset):
 
         XX, llp, ptslist = augment_sample(self.data[index][0], self.data[index][1], self.dim)
         YY = labels2output_map(llp, ptslist, self.dim, self.stride, alfa = 0.75)
+
         X = XX*self.OutputScale
 
         X = torch.from_numpy(XX).permute(2, 0, 1)

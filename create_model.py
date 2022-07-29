@@ -29,7 +29,7 @@ class iiwpod(nn.Module):
         self.batch_5 = nn.BatchNorm2d(64, )
         self.relu_5 = nn.ReLU()
         self.res_4 = ResBlock(64, 64)
-        self.res_5 = ResBlock(64, 64)
+        self.res_5 = ResBlock(64, 32)
         self.head = head()
 
 
@@ -75,9 +75,9 @@ class ResBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(out_channels)
 
     def forward(self, x):
-        shortcut = self.shortcut(x)
         x = nn.ReLU()(self.bn1(self.conv1(x)))
-        x = nn.ReLU()(self.bn2(self.conv2(x)))
+        shortcut = self.shortcut(x)
+        x = self.bn2(self.conv2(x))
         x = x + shortcut
         return nn.ReLU()(x)
 
@@ -86,30 +86,31 @@ class head(nn.Module):
     def __init__(self, ):
         super(head, self).__init__()
         #self.conv_1 = nn.Conv2d(3, 16, (3, 3), (1, 1), groups = 1, bias=True)
-        #self.batch_1 = nn.BatchNorm2d(16, )
-        #self.relu_1 = nn.ReLU()
-        self.conv_2 = nn.Conv2d(64, 16, (3, 3), (1, 1), padding='same')
+        self.batch_1 = nn.BatchNorm2d(16, )
+        self.relu_1 = nn.ReLU()
+        self.conv_2 = nn.Conv2d(32, 16, (3, 3), (1, 1), padding='same')
         #self.lin_1 = nn.Linear(16, 16)
         self.conv_3 = nn.Conv2d(16, 1, (1, 1), (1, 1), padding='same')
         self.sig_1 = nn.Sigmoid()
         
         #self.conv_4 = nn.Conv2d()
-        #self.batch_2 = nn.BatchNorm2d()
-        #self.relu_2 = nn.ReLU()
-        self.conv_5 = nn.Conv2d(64, 16, (3, 3), (1, 1), padding='same')
+        self.batch_2 = nn.BatchNorm2d(16)
+        self.relu_2 = nn.ReLU()
+        self.conv_5 = nn.Conv2d(32, 16, (3, 3), (1, 1), padding='same')
         #self.lin_2 = nn.Linear(16, 16)
         self.conv_6 = nn.Conv2d(16, 6, (1, 1), padding='same')
         self.sig_2 = nn.Sigmoid()
 
     def forward(self, x):
-
         xprobs = self.conv_2(x)
-        #xprobs = self.lin_1(xprobs)\
+        xprobs = self.batch_1(xprobs)
+        xprobs = self.relu_1(xprobs)
         xprobs = self.conv_3(xprobs)
         xprobs = self.sig_1(xprobs)
 
         xbbox = self.conv_5(x)
-        #xbbox = self.lin_2(xbbox)
+        xbbox = self.batch_2(xbbox)
+        xbbox = self.relu_2(xbbox)
         xbbox = self.conv_6(xbbox)
         xbbox = self.sig_2(xbbox)
 
