@@ -86,14 +86,14 @@ class head(nn.Module):
     def __init__(self, ):
         super(head, self).__init__()
         self.conv_1 = nn.Conv2d(64, 32, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
-        self.batch_1 = nn.BatchNorm2d(16, )
+        self.batch_1 = nn.BatchNorm2d(32, )
         self.relu_1 = nn.ReLU()
         self.conv_2 = nn.Conv2d(32, 16, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
         self.conv_3 = nn.Conv2d(16, 1, (1, 1), (1, 1), groups = 1, bias=True, padding='same')
         self.sig_1 = nn.Sigmoid()
         
         self.conv_4 = nn.Conv2d(64, 32, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
-        self.batch_2 = nn.BatchNorm2d(16)
+        self.batch_2 = nn.BatchNorm2d(32)
         self.relu_2 = nn.ReLU()
         self.conv_5 = nn.Conv2d(32, 16, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
         self.conv_6 = nn.Conv2d(16, 6, (1, 1), groups = 1, bias=True, padding='same')
@@ -106,7 +106,7 @@ class head(nn.Module):
         xprobs = self.conv_3(xprobs)
         xprobs = self.sig_1(xprobs)
 
-        xbbox = self.conv_5(x)
+        xbbox = self.conv_4(x)
         xbbox = self.batch_2(xbbox)
         xbbox = self.relu_2(xbbox)
         xbbox = self.conv_5(xbbox)

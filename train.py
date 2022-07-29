@@ -48,7 +48,8 @@ data_gen = ALPRDataGenerator(Data, batch_size=1)
 training_loader = torch.utils.data.DataLoader(data_gen, batch_size = 2, shuffle = True)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-maxEpoch = 100
+lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=600, gamma=0.5)
+maxEpoch = 3000
 
 for epoch in range(maxEpoch):
 
@@ -65,7 +66,10 @@ for epoch in range(maxEpoch):
 			optimizer.step()
 			print(loss.mean())
 
-	print(loss)
+	print('epoch: ', epoch)
+	if epoch % 200 == 0:
+		torch.save(model, f'./model{epoch:04d}.pth')
+	lr_scheduler.step()
 
 
 torch.save(model, './model.pth')
