@@ -23,7 +23,9 @@ two = torch.rand((2, 4, 2)).to('cuda')
 #t4 = time()
 #print('took:', t4-t3)
 
-
+print(p.torch_wn(one[0], two[0]))
+print(p.torch_wn(one[1], two[1]))
+print(p.batch_torch_wn(one, two))
 
 #model = iiwpod().to('cuda')
 #print(summary(model, (3, 128, 128), 3))

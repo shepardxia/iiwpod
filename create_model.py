@@ -88,28 +88,27 @@ class head(nn.Module):
         self.conv_1 = nn.Conv2d(64, 32, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
         self.batch_1 = nn.BatchNorm2d(32, )
         self.relu_1 = nn.ReLU()
-        self.conv_2 = nn.Conv2d(32, 16, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
-        self.conv_3 = nn.Conv2d(16, 1, (1, 1), (1, 1), groups = 1, bias=True, padding='same')
+        self.conv_2 = nn.Conv2d(32, 1, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
         self.sig_1 = nn.Sigmoid()
         
         self.conv_4 = nn.Conv2d(64, 32, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
         self.batch_2 = nn.BatchNorm2d(32)
         self.relu_2 = nn.ReLU()
-        self.conv_5 = nn.Conv2d(32, 16, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
-        self.conv_6 = nn.Conv2d(16, 6, (1, 1), groups = 1, bias=True, padding='same')
+        self.conv_5 = nn.Conv2d(32, 6, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
+
 
     def forward(self, x):
         xprobs = self.conv_1(x)
         xprobs = self.batch_1(xprobs)
         xprobs = self.relu_1(xprobs)
         xprobs = self.conv_2(xprobs)
-        xprobs = self.conv_3(xprobs)
+        #xprobs = self.conv_3(xprobs)
         xprobs = self.sig_1(xprobs)
 
         xbbox = self.conv_4(x)
         xbbox = self.batch_2(xbbox)
         xbbox = self.relu_2(xbbox)
         xbbox = self.conv_5(xbbox)
-        xbbox = self.conv_6(xbbox)
+        #xbbox = self.conv_6(xbbox)
 
         return torch.cat((xprobs, xbbox), 1)

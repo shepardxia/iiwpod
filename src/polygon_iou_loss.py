@@ -33,10 +33,14 @@ def torch_wn(pnts, poly, return_winding=False):
     chk1 = (y_y0 > 0.0)
     chk2 = torch.lt(y[:, None], y1)  # pnts[:, 1][:, None], poly[1:, 1])
     chk3 = torch.sign(diff_)
+    #print('chk1 is:\n', chk1)
+    #print('chk2 is:\n', chk2)
+    #print('chk3 is:\n', chk3)
 
     pos = (chk1 & chk2 & (chk3 > 0)).sum(axis=1, dtype=int)
     neg = (~chk1 & ~chk2 & (chk3 < 0)).sum(axis=1, dtype=int)
     wn = pos - neg
+    print(wn)
     #print(torch.nonzero(wn))
     #print('with pnts', pnts)
     out_ = pnts[torch.nonzero(wn)[:, 0]]
@@ -176,12 +180,16 @@ def batch_torch_wn(pntss, polys, return_winding=False):
     chk1 = (y_y0 > 0.0)
     chk2 = torch.lt(y[:, :, None], y1[:, None])  # pnts[:, 1][:, None], poly[1:, 1])
     chk3 = torch.sign(diff_)
+    #print('chk1 is:\n', chk1)
+    #print('chk2 is:\n', chk2)
+    #print('chk3 is:\n', chk3)
 
     pos = (chk1 & chk2 & (chk3 > 0)).sum(axis=2, dtype=int)
     neg = (~chk1 & ~chk2 & (chk3 < 0)).sum(axis=2, dtype=int)
     wn = pos - neg
-    print(torch.nonzero(wn))
-    print('with pntss:', pntss)
+    print(wn)
+    #print(torch.nonzero(wn))
+    #print('with pntss:', pntss)
     out_ = pntss[torch.nonzero(wn)[:, 0]]
     if return_winding:
         return out_, wn
