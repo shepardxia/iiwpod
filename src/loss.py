@@ -7,6 +7,14 @@ device = 'cuda'
 def gen_loss(Ytrue, Ypred):
     return poly_loss(Ytrue, Ypred) + clas_loss(Ytrue, Ypred)
 
+
+def l1(true, pred, szs):
+	b,h,w,ch = szs
+	res = torch.reshape(true-pred, (b,h*w*ch))
+	res = torch.abs(res)
+	res = torch.sum(res,1)
+	return res
+
 def poly_loss(Ytrue, Ypred):
     Ypred = Ypred.permute(0, 2, 3, 1)
     b = Ytrue.shape[0]
@@ -39,15 +47,13 @@ def poly_loss(Ytrue, Ypred):
 
     #loss = torch.zeros(Ypred.shape[0]).to(device)
 
-    loss = batch_poly_diou_loss(pts[idxs].reshape(-1, 4, 2), pts_true[idxs].reshape(-1, 4, 2)).mean()
-    #for i in range(len(bb)):
-    #    b, x, y = bb[i], xx[i], yy[i]
-    #    loss[b] += c_poly_diou_loss(pts[b, x, y, :].reshape(4, 2), pts_true[b, x, y, :].reshape(4, 2))
-    # dimmax = 13
-    #loss = 1.0 * c_poly_diou_loss(pts_true * flags, pts * flags)
-    # /dimmax
-    #print(loss)
-    return loss
+    loss = batch_poly_diou_loss(pts[idxs].reshape(-1, 4, 2), pts_true[idxs].reshape(-1, 4, 2)) / b
+    print('poly: ', loss)
+    flags = torch.reshape(obj_probs_true, (b,h,w,1))
+    res   =  1.0*l1(pts_true*flags, pts*flags, (b, h, w, 4*2))
+    print('res', res)
+
+    return loss + res
 
 
 def logloss(Ptrue, Pred, szs, eps=10e-10):
