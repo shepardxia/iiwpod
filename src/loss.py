@@ -45,15 +45,20 @@ def poly_loss(Ytrue, Ypred):
 
     idxs = torch.where(obj_probs_true==1)
 
-    #loss = torch.zeros(Ypred.shape[0]).to(device)
+    preds = pts[idxs].reshape(-1, 4, 2)
+    gt = pts_true[idxs].reshape(-1, 4, 2)
+    loss = torch.zeros(gt.shape[0]).to(device)
+    for i in range(gt.shape[0]):
+        loss += c_poly_diou_loss(preds[i], gt[i])
 
-    loss = batch_poly_diou_loss(pts[idxs].reshape(-1, 4, 2), pts_true[idxs].reshape(-1, 4, 2)) / b
-    print('poly: ', loss)
-    flags = torch.reshape(obj_probs_true, (b,h,w,1))
-    res   =  1.0*l1(pts_true*flags, pts*flags, (b, h, w, 4*2))
-    print('res', res)
+    #loss = batch_poly_diou_loss(pts[idxs].reshape(-1, 4, 2), pts_true[idxs].reshape(-1, 4, 2)) / b
 
-    return loss + res
+    #print('poly: ', loss)
+    #flags = torch.reshape(obj_probs_true, (b,h,w,1))
+    #res   =  1.0*l1(pts_true*flags, pts*flags, (b, h, w, 4*2))
+    #print('res', res)
+
+    return loss 
 
 
 def logloss(Ptrue, Pred, szs, eps=10e-10):

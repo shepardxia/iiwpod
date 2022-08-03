@@ -21,7 +21,8 @@ device = 'cuda'
 model = load_network().to(device)
 
 Files = image_files_from_folder('./dataset')
-	
+#Files = image_files_from_folder('/home/worklab/Desktop/IRB-blur/iwpod_net/dataset1') 
+
 #
 #  Defines size of "fake" tiny LP annotation, used when no LP is present
 #				
