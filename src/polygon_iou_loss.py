@@ -263,32 +263,41 @@ def batch_poly_iou(polys1, polys2):
 
     intersections[keep] = Nxy[keep]
 
-
     union = torch.cat((polys1_np_keep, polys2_np_keep, intersections), dim=1)
 
     comb = union.abs().mean(dim=-1)
 
-    max = torch.max(comb, dim=1, keepdim=True)[1].reshape(-1)
+    i = torch.argsort(comb)
 
+    union = union[torch.arange(i.shape[0])[:, None], i]
+
+    new_int = torch.zeros((b, 8, 2)).to(device)
+
+    new_int = union[:, 16: ,:]
+
+    comb = new_int.abs().mean(dim=-1)
+
+    max = torch.max(comb, dim=1, keepdim=True)[1].reshape(-1)
+    
     head = torch.arange(b).to(device)
 
     cat = torch.cat([head, max], dim=0)
     cat = torch.split(cat, b, dim=0)
 
+    new_int = new_int.double()
 
+    alt = new_int[cat]
 
-    alt = union[cat]
-
-    alt = alt.unsqueeze(1).repeat(1, 24, 1)
+    alt = alt.unsqueeze(1).repeat(1, 8, 1).detach()
 
     idxs = torch.where(comb==0)
-    union[idxs] = alt[idxs]
 
-    polyi = batch_clockify(union)
+    new_int[idxs] = alt[idxs]
+
+    polyi = batch_clockify(new_int)
 
 
-    ai = batch_poly_area(polyi)
-
+    ai = batch_poly_area(polyi).type(torch.float32)
 
 
     iou = ai / (a1 + a2 - ai + 1e-10)
