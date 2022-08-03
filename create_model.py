@@ -84,6 +84,7 @@ class ResBlock(nn.Module):
         xi = nn.ReLU()(xi)
         xi = self.conv2(xi)
         xi = self.bn2(xi)
+
         
 
 

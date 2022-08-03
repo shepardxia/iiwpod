@@ -54,7 +54,7 @@ maxEpoch = 3000
 
 for epoch in range(maxEpoch):
 
-	for batch, (x, y) in enumerate(training_loader):
+	for batch, (x, y) in tqdm(enumerate(training_loader)):
 		
 		x = x.type(torch.float32)
 		pred = model(x)
