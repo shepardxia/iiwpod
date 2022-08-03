@@ -67,6 +67,7 @@ img = np.zeros((500, 500, 3))
 #print(p.batch_poly_area(tom))
 
 res = torch.zeros((100)).to('cuda')
+torch.cuda.synchronize()
 t1 = time()
 cnt = 0
 for j in range((int)(1000 / one.shape[0])):
@@ -75,14 +76,16 @@ for j in range((int)(1000 / one.shape[0])):
         res[i] = p.c_poly_diou_loss(one[i], two[i])
         #print(res[i])
 print(res.mean())
+torch.cuda.synchronize()
 t2 = time()
 print('took:', t2-t1)
+torch.cuda.synchronize()
 t3 = time()
 res2 = None
 for i in range((int)(1000 / one.shape[0])):
     res2 = p.batch_poly_diou_loss(one, two)
 print(res2.mean())
-
+torch.cuda.synchronize()
 t4 = time()
 print('took:', t4-t3)
 #clock1 = torch.tensor(([[0.2191, 0.4742],
