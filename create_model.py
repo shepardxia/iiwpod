@@ -74,10 +74,7 @@ class ResBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(out_channels)
 
     def forward(self, x):
-        #x = nn.ReLU()(self.bn1(self.conv1(x)))
-        #shortcut = self.shortcut(x)
-        #x = self.bn2(self.conv2(x))
-        #x = x + shortcut
+
         xi = x
         xi = self.conv1(xi)
         xi = self.bn1(xi)
@@ -85,41 +82,40 @@ class ResBlock(nn.Module):
         xi = self.conv2(xi)
         xi = self.bn2(xi)
 
-        
-
-
-
-
-        return nn.ReLU()(x)
+        return nn.ReLU()(xi + x)
 
 
 class head(nn.Module):
     def __init__(self, ):
         super(head, self).__init__()
+        self.conv_0 = nn.Conv2d(64, 64, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
+        self.batch_0 = nn.BatchNorm2d(64, )
         self.conv_1 = nn.Conv2d(64, 32, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
         self.batch_1 = nn.BatchNorm2d(32, )
-        self.relu_1 = nn.ReLU()
         self.conv_2 = nn.Conv2d(32, 1, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
         self.sig_1 = nn.Sigmoid()
         
+        self.conv_3 = nn.Conv2d(64, 64, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
+        self.batch_3 = nn.BatchNorm2d(64, )
         self.conv_4 = nn.Conv2d(64, 32, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
-        self.batch_2 = nn.BatchNorm2d(32)
-        self.relu_2 = nn.ReLU()
+        self.batch_4 = nn.BatchNorm2d(32, )
         self.conv_5 = nn.Conv2d(32, 6, (3, 3), (1, 1), groups = 1, bias=True, padding='same')
 
 
     def forward(self, x):
-        xprobs = self.conv_1(x)
+        xprobs = self.conv_0(x)
+        xprobs = self.batch_0(xprobs)
+        xprobs = nn.ReLU()(xprobs)
+        xprobs = self.conv_1(xprobs)
         xprobs = self.batch_1(xprobs)
-        xprobs = self.relu_1(xprobs)
         xprobs = self.conv_2(xprobs)
-        #xprobs = self.conv_3(xprobs)
         xprobs = self.sig_1(xprobs)
 
-        xbbox = self.conv_4(x)
-        xbbox = self.batch_2(xbbox)
-        xbbox = self.relu_2(xbbox)
+        xbbox = self.conv_3(x)
+        xbbox = self.batch_3(xbbox)
+        xbbox = nn.ReLU()(xbbox)
+        xbbox = self.conv_4(xbbox)
+        xbbox = self.batch_4(xbbox)
         xbbox = self.conv_5(xbbox)
-        #xbbox = self.conv_6(xbbox)
 
         return torch.cat((xprobs, xbbox), 1)
