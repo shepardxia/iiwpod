@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import cv2
 
+device = 'cuda'
 
 def poly_area(polygon):
     """
@@ -97,11 +98,14 @@ def c_poly_iou(poly1, poly2):
     # modified
     # s_total[D < 1e-10] = 0
     keep = torch.nonzero(s_total)
-
     keep = keep.detach()
+
     Nx = Nx[keep[:, 0], keep[:, 1]]
+
     Ny = Ny[keep[:, 0], keep[:, 1]]
+
     intersections = torch.stack([Nx, Ny], dim=1)
+
     # print(np_wn(poly1_np, poly2_np))
     poly1_np_keep = torch_wn(poly1, poly2)
     poly2_np_keep = torch_wn(poly2, poly1)
@@ -114,7 +118,7 @@ def c_poly_iou(poly1, poly2):
 
     # print(intersections)
     polyi = clockify(union)
-    # print(polyi)
+
 
     a1 = poly_area(poly1)
     a2 = poly_area(poly2)
@@ -190,12 +194,18 @@ def batch_torch_wn(pntss, polys, return_winding=False):
     #print(wn)
     #print(torch.nonzero(wn))
     #print('with pntss:', pntss)
-    out_ = pntss[torch.nonzero(wn)[:, 0]]
+    out_ = torch.zeros((pntss.shape[0], 4, 2)).to(device)
+    idxs = torch.where(wn!=0)
+    out_[idxs] = pntss[idxs] 
+    
+    #out_ = pntss[torch.nonzero(wn)[:, 0]]
     if return_winding:
         return out_, wn
     return out_
 
 def batch_poly_iou(polys1, polys2):
+
+    b = polys1.shape[0]
 
     polys1 = batch_clockify(polys1)
     polys2 = batch_clockify(polys2)
@@ -220,6 +230,7 @@ def batch_poly_iou(polys1, polys2):
     Nx = ((x1 * y2 - x2 * y1) * (x3 - x4) - (x3 * y4 - x4 * y3) * (x1 - x2)) / D
     Ny = ((x1 * y2 - x2 * y1) * (y3 - y4) - (x3 * y4 - x4 * y3) * (y1 - y2)) / D
 
+
     # get points that intersect in valid range (Nx should be greater than exactly one of x1,x2 and exactly one of x3,x4)
     s1 = torch.sign(Nx - x1)
     s2 = torch.sign(Nx - x2)
@@ -235,34 +246,51 @@ def batch_poly_iou(polys1, polys2):
     a2 = batch_poly_area(polys2)
     ai = torch.empty(a1.shape).to('cuda')
 
-    for i in range(s_total.shape[0]):
 
-        keep = torch.nonzero(s_total[i])
+    
+    polys1_np_keep = batch_torch_wn(polys1, polys2)
+    polys2_np_keep = batch_torch_wn(polys2, polys1)
 
-        keep = keep.detach()
+    keep = torch.where(s_total.reshape(b, -1)!=0)
 
-        nx = Nx[i][keep[:, 0], keep[:, 1]]
-        ny = Ny[i][keep[:, 0], keep[:, 1]]
+    Nx = Nx.reshape(b, -1)
+    Ny = Ny.reshape(b, -1)
 
-        intersections = torch.stack([nx, ny], dim=1)
-
-
-        polys1_np_keep = torch_wn(polys1[i], polys2[i])
-        polys2_np_keep = torch_wn(polys2[i], polys1[i])
-
-        union = torch.cat((polys1_np_keep, polys2_np_keep, intersections), dim=0)
+    Nxy = torch.cat((Nx[...,None], Ny[...,None]), dim=-1)
 
 
-        polyi = clockify(union)
+    intersections = torch.zeros((b, 16, 2)).to(device)
 
-        ai[i] = poly_area(polyi)
+    intersections[keep] = Nxy[keep]
 
 
-    #ai = batch_poly_area(polyi)
+    union = torch.cat((polys1_np_keep, polys2_np_keep, intersections), dim=1)
 
-    # print("Poly 1 area: {}".format(a1))
-    # print("Poly 2 area: {}".format(a2))
-    # print("Intersection area: {}".format(ai))
+    comb = union.abs().mean(dim=-1)
+
+    max = torch.max(comb, dim=1, keepdim=True)[1].reshape(-1)
+
+    head = torch.arange(b).to(device)
+
+    cat = torch.cat([head, max], dim=0)
+    cat = torch.split(cat, b, dim=0)
+
+
+
+    alt = union[cat]
+
+    alt = alt.unsqueeze(1).repeat(1, 24, 1)
+
+    idxs = torch.where(comb==0)
+    union[idxs] = alt[idxs]
+
+    polyi = batch_clockify(union)
+
+
+    ai = batch_poly_area(polyi)
+
+
+
     iou = ai / (a1 + a2 - ai + 1e-10)
 
     return iou
