@@ -55,7 +55,7 @@ def poly_loss(Ytrue, Ypred):
 
     print('poly: ', loss)
     flags = torch.reshape(obj_probs_true, (b,h,w,1))
-    res   =  0.5*l1(pts_true*flags, pts*flags, (b, h, w, 4*2))
+    res   =  0.5*l1(pts_true*flags, pts*flags, (b, h, w, 4*2)).mean()
     print('res: ', res)
 
     return loss.mean() / b

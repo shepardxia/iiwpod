@@ -52,6 +52,9 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=600, gamma=0.5)
 maxEpoch = 3000
 
+for p in model.parameters():
+	p.register_hook(lambda grad: torch.clamp(grad, -1, 1))
+
 for epoch in range(maxEpoch):
 
 	for batch, (x, y) in tqdm(enumerate(training_loader)):
@@ -65,9 +68,9 @@ for epoch in range(maxEpoch):
 			print('caught')
 		else:
 			optimizer.step()
-			print(loss.mean())
+			#print(loss.mean())
 
-	print('epoch: ', epoch)
+	print('epoch: ', epoch, loss.mean())
 	if epoch % 200 == 0:
 		torch.save(model, f'./model{epoch:04d}.pth')
 	lr_scheduler.step()
